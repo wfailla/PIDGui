@@ -4,3 +4,11 @@ A small "simulator" of a PID-Controller. This programs function is to visualize
 the workings of a PID-Controller. To help understand it.
 
 For information on the usage use the `--help` option.
+
+## Build
+
+To build use the included build script:
+
+```
+./build.sh
+```
