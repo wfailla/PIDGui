@@ -97,8 +97,6 @@ namespace dialog {
       switch (response) {
         case Gtk.ResponseType.OK:
           // show_help ();
-          
-          const int SIZE = 10;
 
           var file = File.new_for_uri (Save_File_Dialog.get_uri());
           

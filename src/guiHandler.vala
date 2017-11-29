@@ -70,15 +70,6 @@ namespace gui {
         string text = source.get_text();
         string newText = regex.replace (text, -1, 0, "");
 
-        /*
-        var numberOfPoints = new Regex ("([\\.])");
-
-        if (numberOfPoints.match(text).get_capture_count() > 1) {
-          Posix.stdout.printf("two dots detected\n");
-          text = newText;
-          newText = numberOfPoints.replace (text, -1, 0, "");
-        }*/
-
         source.set_text(newText);
       } catch (RegexError e) {
         warning ("%s", e.message);
@@ -142,8 +133,6 @@ namespace gui {
     [CCode (instance_pos = -1)]
     public void on_Export_Button_clicked(Button source) {
       this.Export_Menu.popup();
-      //this.Export_Popover.popup();
-      //source.set_active(!source.get_active());
     }
 
     [CCode (instance_pos = -1)]
@@ -170,6 +159,7 @@ namespace gui {
       // set fg color
       var fgColor = style_context.get_color(source.get_state_flags());
       ctx.set_source_rgb ( fgColor.red, fgColor.green, fgColor.blue );
+      
       Axies (ctx, this.position.get(0), this.position.get(1),
             source.get_allocated_width(), source.get_allocated_height());
 
@@ -201,7 +191,6 @@ namespace gui {
     public bool on_Diagram_Motion(DrawingArea source, Gdk.EventButton event) {
 
       if(this.dragging) {
-        Posix.stdout.printf("Motion\n");
         Gsl.Vector tmpVec = new Gsl.Vector(2);
         tmpVec.set(0,event.x);
         tmpVec.set(1,event.y);
@@ -219,7 +208,6 @@ namespace gui {
 
       if (event.button == 1) {
         if(!this.dragging) {
-          Posix.stdout.printf("pressed\n");
           this.dragging = true;
 
           Gsl.Vector tmpVec = new Gsl.Vector(2);
@@ -247,7 +235,6 @@ namespace gui {
 
       if(this.dragging) {
         this.dragging = false;
-        Posix.stdout.printf("Released\n");
         this.deltaCenter.set(0, 0);
         this.deltaCenter.set(1, 0);
 
@@ -328,13 +315,6 @@ namespace gui {
 
 #if NOSVGEXPORT
       var builder = new Builder();
-      var style_context = source.get_style_context();
-
-      // set bg color
-      var bgColor = style_context.get_background_color(source.get_state_flags());
-
-      // set fg color
-      var fgColor = style_context.get_color(source.get_state_flags());
 
       var PNG_Save_File_Dialog_Handler = new dialog.SVGSaveDialogHandler (this.Points,
         this.position,
