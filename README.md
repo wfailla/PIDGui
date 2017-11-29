@@ -24,3 +24,9 @@ Some options are configurable at compile time:
   * `NOSVGEXPORT` disables the svg export
   * `NOTICS` disables the tics on the axies
   * `NOZOOM` disables the possibility to zoom the view
+
+Use this to pass the compile flags:
+
+```
+VALAFLAGS="-D NORESET" ./build.sh
+```
