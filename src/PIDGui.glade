@@ -20,17 +20,32 @@
         <property name="margin_right">2</property>
         <property name="spacing">4</property>
         <child>
-          <object class="GtkDrawingArea" id="Diagram">
-            <property name="width_request">250</property>
-            <property name="height_request">250</property>
+          <object class="GtkScrolledWindow">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="tooltip_text" translatable="yes">Drag the picture using the left mouse button.
+            <property name="can_focus">True</property>
+            <property name="shadow_type">in</property>
+            <signal name="scroll-event" handler="gui_handler_on_Diagram_Scrolled" swapped="no"/>
+            <child>
+              <object class="GtkViewport">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <object class="GtkDrawingArea" id="Diagram">
+                    <property name="width_request">250</property>
+                    <property name="height_request">250</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip_text" translatable="yes">Drag the picture using the left mouse button.
 To center the picture right click.</property>
-            <signal name="button-press-event" handler="gui_handler_on_Diagram_Pressed" swapped="no"/>
-            <signal name="button-release-event" handler="gui_handler_on_Diagram_Released" swapped="no"/>
-            <signal name="draw" handler="gui_handler_draw" swapped="no"/>
-            <signal name="motion-notify-event" handler="gui_handler_on_Diagram_Motion" swapped="no"/>
+                    <signal name="button-press-event" handler="gui_handler_on_Diagram_Pressed" swapped="no"/>
+                    <signal name="button-release-event" handler="gui_handler_on_Diagram_Released" swapped="no"/>
+                    <signal name="draw" handler="gui_handler_draw" swapped="no"/>
+                    <signal name="motion-notify-event" handler="gui_handler_on_Diagram_Motion" swapped="no"/>
+                    <signal name="scroll-event" handler="gui_handler_on_Diagram_Scrolled" swapped="no"/>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">True</property>
@@ -424,9 +439,6 @@ To center the picture right click.</property>
           <placeholder/>
         </child>
       </object>
-    </child>
-    <child>
-      <placeholder/>
     </child>
   </object>
 </interface>

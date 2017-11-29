@@ -48,7 +48,8 @@ namespace gui {
       this.Diagram = (DrawingArea) builder.get_object("Diagram");
       this.Diagram.add_events(Gdk.EventMask.BUTTON_PRESS_MASK
                                 | Gdk.EventMask.BUTTON_RELEASE_MASK
-                                | Gdk.EventMask.POINTER_MOTION_MASK);
+                                | Gdk.EventMask.POINTER_MOTION_MASK
+                                | Gdk.EventMask.SCROLL_MASK);
 
       this.CSV = "Time; KP; KI; KD; Input; Setpoint; Result; OldResult;\n";
 
@@ -173,6 +174,25 @@ namespace gui {
       Graph (ctx, this.Points, this.position.get(0), this.position.get(1));
 
       return false;
+    }
+    
+    [CCode (instance_pos = -1)]
+    public bool on_Diagram_Scrolled(DrawingArea source, Gdk.EventScroll event) {
+#if !NOZOOM
+      if (event.direction == Gdk.ScrollDirection.UP) {
+        if (ticWidth > 5) {
+          ticWidth -= 5;
+          this.Diagram.queue_draw ();
+        }
+      } else if (event.direction == Gdk.ScrollDirection.DOWN) {
+        if (ticWidth < 120) {
+          ticWidth += 5;
+          this.Diagram.queue_draw ();
+        }
+      }
+#endif
+      
+      return true;
     }
 
     [CCode (instance_pos = -1)]
