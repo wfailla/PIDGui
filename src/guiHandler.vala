@@ -231,11 +231,14 @@ namespace gui {
         }
       }
 
+#if !NOCENTER
       if (event.button == 3) {
         this.position.set(0, Diagram.get_allocated_width() / 2);
         this.position.set(1, Diagram.get_allocated_height() / 2);
         this.Diagram.queue_draw ();
       }
+#endif
+
       return true;
     }
 
