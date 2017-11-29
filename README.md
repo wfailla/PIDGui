@@ -12,3 +12,15 @@ To build use the included build script:
 ```
 ./build.sh
 ```
+
+### Preprocessor Options
+
+Some options are configurable at compile time:
+
+  * `NOCENTER` disables the possibility to center the view on a right click
+  * `NOCSVEXPORT` disables the csv export
+  * `NOPNGEXPORT` disables the png export
+  * `NORESET` disables the reset button
+  * `NOSVGEXPORT` disables the svg export
+  * `NOTICS` disables the tics on the axies
+  * `NOZOOM` disables the possibility to zoom the view
