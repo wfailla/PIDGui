@@ -56,11 +56,10 @@ class Main : GLib.Object {
       Button.hide();
     }
 
-    if (no_reset) {
-      stdout.printf ("noreset");
+#if NORESET
       var Button = (Widget) App.builder.get_object("Reset_Button");
       Button.destroy();
-    }
+#endif
 
     App.main_window.show_all();
     Gtk.main();

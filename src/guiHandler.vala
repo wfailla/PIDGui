@@ -127,6 +127,7 @@ namespace gui {
 
     [CCode (instance_pos = -1)]
     public void on_Reset_Button_clicked(Button source) {
+#if NORESET
       this.pid.reset();
       this.CalcResult_TextView.buffer.text = "Time\tResult\tOldResult\n";
       this.CSV = "";
@@ -135,6 +136,7 @@ namespace gui {
       this.position.set(1, Diagram.get_allocated_height() / 2);
 
       this.Diagram.queue_draw ();
+#endif
     }
 
     [CCode (instance_pos = -1)]
