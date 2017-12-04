@@ -107,8 +107,10 @@ public void Graph (Context ctx, List<double?> Points, double offsetX,
   ctx.set_line_join (LineJoin.ROUND);
   ctx.move_to (0, 0);
 
+
+  // add scale because the y values are high 
   Points.foreach ((entry) => {
-    ctx.line_to(Points.index (entry) * ticWidth, -1 *entry);
+    ctx.line_to(Points.index (entry) * ticWidth, -1 * entry * ticWidth);
   });
 
   ctx.stroke();
