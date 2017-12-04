@@ -246,7 +246,7 @@ namespace gui {
     [CCode (instance_pos = -1)]
     public void on_CSVExport_Button_clicked(Button source) {
 
-#if NOCSVEXPORT
+#if !NOCSVEXPORT
       var builder = new Builder();
       var Save_File_Dialog_Handler = new dialog.SaveDialogHandler (this.CSV);
 
@@ -278,7 +278,7 @@ namespace gui {
     [CCode (instance_pos = -1)]
     public void on_PNGExport_Button_clicked(Button source) {
 
-#if NOPNGEXPORT
+#if !NOPNGEXPORT
       var builder = new Builder();
       var PNG_Save_File_Dialog_Handler = new dialog.PNGSaveDialogHandler (this.Points,
         this.position,
@@ -313,7 +313,7 @@ namespace gui {
     [CCode (instance_pos = -1)]
     public void on_SVGExport_Button_clicked(Button source) {
 
-#if NOSVGEXPORT
+#if !NOSVGEXPORT
       var builder = new Builder();
 
       var PNG_Save_File_Dialog_Handler = new dialog.SVGSaveDialogHandler (this.Points,
