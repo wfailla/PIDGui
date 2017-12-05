@@ -390,7 +390,7 @@ To center the picture right click.</property>
             <property name="tooltip_text" translatable="yes">Export PID graph as .svg File.</property>
             <property name="text" translatable="yes">SVG</property>
             <property name="centered">True</property>
-            <signal name="clicked" handler="gui_handler_on_Choose_Export_Button_clicked" swapped="no"/>
+            <signal name="clicked" handler="gui_handler_on_Export_Button_clicked" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>

@@ -27,36 +27,12 @@ class Main : GLib.Object {
 
     Gtk.init (ref args);
     gui.handler App = new gui.handler();
-
-    //if (no_svg_export && no_png_export && no_csv_export) {
-    //  stdout.printf ("Error");
-    //  return 1;
-    //}
-
-#if NOSVGEXPORT && NOPNGEXPORT && NOCSVEXPORT
-    var Export_Button = (Widget) App.builder.get_object("Export_Button");
-    Export_Button.destroy();
-#endif
-
-#if NOSVGEXPORT
-    var SVG_Button = (Widget) App.builder.get_object("SVGExport_Button");
-    SVG_Button.hide();
-#endif
-
-#if NOPNGEXPORT
-    var PNG_Button = (Widget) App.builder.get_object("PNGExport_Button");
-    PNG_Button.hide();
-#endif
-
-#if NOCSVEXPORT
-    var CSV_Button = (Widget) App.builder.get_object("CSVExport_Button");
-    CSV_Button.hide();
-#endif
-
-#if NORESET
-    var RESET_Button = (Widget) App.builder.get_object("Reset_Button");
-    RESET_Button.destroy();
-#endif
+    
+    // var SVG_Button = (Widget) App.builder.get_object("SVGExport_Button");
+    // SVG_Button.hide();
+    
+    // var PNG_Button = (Widget) App.builder.get_object("PNGExport_Button");
+    // PNG_Button.hide();
 
     App.main_window.show_all();
     Gtk.main();

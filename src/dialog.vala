@@ -3,9 +3,9 @@ using Gdk;
 using Posix;
 using Cairo;
 
-namespace dialog { 
+namespace dialog {
 
-  public class SVGSaveDialogHandler : Object {
+  public class SVGSaveDialogHandler : Object, gui.SaveDialogHandler {
     private Context context = null;
     private SvgSurface surface = null;
     private Gsl.Vector position = new Gsl.Vector (2);
@@ -13,7 +13,7 @@ namespace dialog {
     private int width = 0;
     private int height = 0;
   
-    public SVGSaveDialogHandler (List<double?> Points, Gsl.Vector Position, int x_size, int y_size) {
+    public void SaveDialogHandler (List<double?> Points, Gsl.Vector Position, int x_size, int y_size) {
       Points.foreach ((entry) => {
         this.Points.append( entry );
       });
@@ -29,6 +29,7 @@ namespace dialog {
             
       switch (response) {
         case Gtk.ResponseType.OK:
+          Posix.stdout.printf("ok");
                  
 //          if ( "." in Save_File_Dialog.get_uri()){
 //            Posix.stdout.printf("not appending\n");
@@ -57,22 +58,25 @@ namespace dialog {
           this.surface = new SvgSurface (Save_File_Dialog.get_filename(),
                                          this.width, this.height);
           this.context = new Context (this.surface);
-
+          
+          gui.Renderer renderer = new drawer.simpleDraw();
+      
           context.set_source_rgb (1,1,1);
-          Background (context, this.width, this.height);
+          renderer.Background (context, this.width, this.height);
           context.set_source_rgb (0,0,0);
-          Axies (context, this.position.get(0), this.position.get(1),
+          renderer.Axies (context, this.position.get(0), this.position.get(1),
                  this.width, this.height);
-          Graph (context, this.Points, this.position.get(0), this.position.get(1));
+          renderer.Graph (context, this.Points, this.position.get(0), this.position.get(1));
           
           break;
         case Gtk.ResponseType.CANCEL:
+          Posix.stdout.printf("cancel");
           break;
       }
     }
   }
 
-  public class PNGSaveDialogHandler : Object {
+  public class PNGSaveDialogHandler : Object, gui.SaveDialogHandler {
     private Context context = null;
     private ImageSurface surface = null;
     private Gsl.Vector position = new Gsl.Vector (2);
@@ -80,7 +84,7 @@ namespace dialog {
     private int width = 0;
     private int height = 0;
   
-    public PNGSaveDialogHandler (List<double?> Points, Gsl.Vector Position, int x_size, int y_size) {
+    public void SaveDialogHandler (List<double?> Points, Gsl.Vector Position, int x_size, int y_size) {
       Points.foreach ((entry) => {
         this.Points.append( entry );
       });
@@ -96,6 +100,7 @@ namespace dialog {
             
       switch (response) {
         case Gtk.ResponseType.OK:
+          Posix.stdout.printf("ok");
           // show_help ();
 
           var file = File.new_for_uri (Save_File_Dialog.get_uri());
@@ -113,27 +118,30 @@ namespace dialog {
           this.surface = new ImageSurface (Cairo.Format.ARGB32, this.width,
                                            this.height);
           this.context = new Context (this.surface);
-          
+                   
+          gui.Renderer renderer = new drawer.simpleDraw();
+           
           context.set_source_rgba (1,1,1,1);
-          Background (context, this.width, this.height);
+          renderer.Background (context, this.width, this.height);
           context.set_source_rgb (0,0,0);
-          Axies (context, this.position.get(0), this.position.get(1),
+          renderer.Axies (context, this.position.get(0), this.position.get(1),
                  this.width, this.height);
-          Graph (context, this.Points, this.position.get(0), this.position.get(1));
+          renderer.Graph (context, this.Points, this.position.get(0), this.position.get(1));
           
           this.surface.write_to_png (Save_File_Dialog.get_filename());
           
           break;
         case Gtk.ResponseType.CANCEL:
+          Posix.stdout.printf("cancel");
           break;
       }
     }
   }
 
-  public class SaveDialogHandler : Object {
+  public class CSVSaveDialogHandler : Object {
     public string CSV { get; set; default=""; }
     
-    public SaveDialogHandler (string csv) {
+    public CSVSaveDialogHandler (string csv) {
       this.CSV = csv;
     }
     

@@ -1,15 +1,15 @@
-public class PID : Object{
-  public double kp { get; set; default=0; }
-  public double ki { get; set; default=0; }
-  public double kd { get; set; default=0; }
-  public int TimeInMs { get; set; default=0; }
+public class PID : Object, gui.PIDController {
+  public double kp { get; set; default=0; } //setter
+  public double ki { get; set; default=0; } //setter
+  public double kd { get; set; default=0; } //setter
+  public int TimeInMs { get; set; default=0; } //getter, setter
   private double Error;
   private double ErrorSum;
   private double ErrorOld;
   private double _Result;
-  public double Result { get { return this._Result; } default=0; }
+  public double Result { get { return this._Result; } default=0; } //getter
   private double _OldResult;
-  public double OldResult { get { return this._OldResult; } default=0; }
+  public double OldResult { get { return this._OldResult; } default=0; } //getter
 
   public PID(){}
 

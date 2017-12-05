@@ -4,6 +4,91 @@ using Cairo;
 using Gsl;
 
 namespace gui {
+
+  public interface SaveDialogHandler : Object {    
+    public void SaveDialogHandler (List<double?> Points, Gsl.Vector Position, int x_size, int y_size){
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public void saveResponse (Dialog source, int response){
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+  }
+  
+  public interface Renderer : Object {
+    public virtual void triangle (Context ctx, double x, double y, int rotation) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void Background (Context ctx, double width, double height) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void Axies (Context ctx, double posiX, double posiY, double width,
+      double hight ) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void Graph (Context ctx, List<double?> Points, double offsetX,
+      double offsetY) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    
+    public virtual int getTriangleSize () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+    public virtual int getTicHight () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+    public virtual int getTicWidth () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+    
+    public virtual void setTriangleSize (int value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void setTicHight (int value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void increaseTicWidth (int value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+  }
+
+  public interface PIDController : Object {
+    public virtual void reset() {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void PIDcalc(double Input, double Setpoint) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    
+    public virtual void setKp (double value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void setKi (double value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void setKd (double value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    public virtual void setTimeInMs (double value) {
+      Posix.stdout.printf ("Not Implemented!\n");
+    }
+    
+    public virtual int getTimeInMs () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+    public virtual double getResult () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+    public virtual double getOldResult () {
+      Posix.stdout.printf ("Not Implemented!\n");
+      return 0;
+    }
+  }
+
   public class handler : Object {
 
     public Window main_window;
@@ -31,7 +116,8 @@ namespace gui {
     public DrawingArea Diagram = null;
 
     public string CSV = null;
-
+    
+    Renderer renderer = new drawer.simpleDraw();
 
     construct {
       builder.add_objects_from_file("PIDGui.glade", {"window", "CalcResult_TextBuffer", "Export_Menu"});
@@ -118,7 +204,6 @@ namespace gui {
 
     [CCode (instance_pos = -1)]
     public void on_Reset_Button_clicked(Button source) {
-#if NORESET
       this.pid.reset();
       this.CalcResult_TextView.buffer.text = "Time\tResult\tOldResult\n";
       this.CSV = "";
@@ -127,7 +212,6 @@ namespace gui {
       this.position.set(1, Diagram.get_allocated_height() / 2);
 
       this.Diagram.queue_draw ();
-#endif
     }
 
     [CCode (instance_pos = -1)]
@@ -149,41 +233,40 @@ namespace gui {
       }
 
       var style_context = source.get_style_context();
-
+      
       // set bg color
       var bgColor = style_context.get_background_color(source.get_state_flags());
       ctx.set_source_rgba ( bgColor.red, bgColor.green, bgColor.blue, bgColor.alpha );
 
-      Background (ctx, source.get_allocated_width(), source.get_allocated_height());
+      renderer.Background (ctx, source.get_allocated_width(),
+        source.get_allocated_height());
 
       // set fg color
       var fgColor = style_context.get_color(source.get_state_flags());
       ctx.set_source_rgb ( fgColor.red, fgColor.green, fgColor.blue );
-      
-      Axies (ctx, this.position.get(0), this.position.get(1),
-            source.get_allocated_width(), source.get_allocated_height());
 
-      Graph (ctx, this.Points, this.position.get(0), this.position.get(1));
+      renderer.Axies (ctx, this.position.get(0), this.position.get(1),
+        source.get_allocated_width(), source.get_allocated_height());
+
+      renderer.Graph (ctx, this.Points, this.position.get(0),
+        this.position.get(1));
 
       return false;
     }
     
     [CCode (instance_pos = -1)]
     public bool on_Diagram_Scrolled(DrawingArea source, Gdk.EventScroll event) {
-#if !NOZOOM
       if (event.direction == Gdk.ScrollDirection.UP) {
-        if (ticWidth > 5) {
-          ticWidth -= 5;
+        if (renderer.getTicWidth() > 5) {
+          renderer.increaseTicWidth(-5);
           this.Diagram.queue_draw ();
         }
       } else if (event.direction == Gdk.ScrollDirection.DOWN) {
-        if (ticWidth < 120) {
-          ticWidth += 5;
+        if (renderer.getTicWidth() < 120) {
+          renderer.increaseTicWidth(5);
           this.Diagram.queue_draw ();
         }
       }
-#endif
-      
       return true;
     }
 
@@ -218,15 +301,11 @@ namespace gui {
           this.deltaCenter.sub(tmpVec);
         }
       }
-
-#if !NOCENTER
       if (event.button == 3) {
         this.position.set(0, Diagram.get_allocated_width() / 2);
         this.position.set(1, Diagram.get_allocated_height() / 2);
         this.Diagram.queue_draw ();
       }
-#endif
-
       return true;
     }
 
@@ -245,10 +324,8 @@ namespace gui {
 
     [CCode (instance_pos = -1)]
     public void on_CSVExport_Button_clicked(Button source) {
-
-#if !NOCSVEXPORT
       var builder = new Builder();
-      var Save_File_Dialog_Handler = new dialog.SaveDialogHandler (this.CSV);
+      var Save_File_Dialog_Handler = new dialog.CSVSaveDialogHandler (this.CSV);
 
       try {
         builder.add_objects_from_file("PIDGui.glade", {"Save_File_Dialog"});
@@ -271,20 +348,11 @@ namespace gui {
       Save_File_Dialog.run();
 
       Save_File_Dialog.destroy();
-#endif
-      
     }
 
     [CCode (instance_pos = -1)]
-    public void on_PNGExport_Button_clicked(Button source) {
-
-#if !NOPNGEXPORT
+    public void on_Choose_Export_Button_clicked(Button source) {
       var builder = new Builder();
-      var PNG_Save_File_Dialog_Handler = new dialog.PNGSaveDialogHandler (this.Points,
-        this.position,
-        this.Diagram.get_allocated_width(),
-        this.Diagram.get_allocated_height());
-
       try {
         builder.add_objects_from_file("PIDGui.glade", {"Save_File_Dialog"});
       } catch (GLib.Error e) {
@@ -292,58 +360,45 @@ namespace gui {
         exit(1);
       }
       //builder.connect_signals(Save_File_Dialog_Handler);
+      
 
       var Save_File_Dialog = (FileChooserDialog) builder.get_object("Save_File_Dialog");
-
       Save_File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
       Save_File_Dialog.add_buttons (
         "_Cancel", Gtk.ResponseType.CANCEL,
         "_Save", Gtk.ResponseType.OK);
 
-      // nur fix eigentlich sollte man buidler.connect_signals benutzen
-      Save_File_Dialog.response.connect(PNG_Save_File_Dialog_Handler.saveResponse);
+      SaveDialogHandler Save_File_Dialog_Handler = null;
 
-      Save_File_Dialog.run();
+      switch (source.get_name()) {
+      case "PNGExport_Button":
+        Save_File_Dialog_Handler = new dialog.PNGSaveDialogHandler();
+        (Save_File_Dialog_Handler as dialog.PNGSaveDialogHandler).SaveDialogHandler (this.Points,
+          this.position,
+          this.Diagram.get_allocated_width(),
+          this.Diagram.get_allocated_height());
 
-      Save_File_Dialog.destroy();
-#endif
-      
-    }
+        // nur fix eigentlich sollte man buidler.connect_signals benutzen
+        Save_File_Dialog.response.connect((Save_File_Dialog_Handler as dialog.PNGSaveDialogHandler).saveResponse);
+        break;
+      case "SVGExport_Button":
+        Save_File_Dialog_Handler = new dialog.SVGSaveDialogHandler();
+        (Save_File_Dialog_Handler as dialog.SVGSaveDialogHandler).SaveDialogHandler (this.Points,
+          this.position,
+          this.Diagram.get_allocated_width(),
+          this.Diagram.get_allocated_height());
 
-    [CCode (instance_pos = -1)]
-    public void on_SVGExport_Button_clicked(Button source) {
-
-#if !NOSVGEXPORT
-      var builder = new Builder();
-
-      var PNG_Save_File_Dialog_Handler = new dialog.SVGSaveDialogHandler (this.Points,
-        this.position,
-        this.Diagram.get_allocated_width(),
-        this.Diagram.get_allocated_height());
-
-      try {
-        builder.add_objects_from_file("PIDGui.glade", {"Save_File_Dialog"});
-      } catch (GLib.Error e) {
-        Posix.stderr.printf ("Could not load save file dialog: %s\n", e.message);
-        exit(1);
+        // nur fix eigentlich sollte man buidler.connect_signals benutzen
+        Save_File_Dialog.response.connect((Save_File_Dialog_Handler as dialog.SVGSaveDialogHandler).saveResponse);
+        break;
+      default:
+        Posix.stdout.printf("Error!\n");
+        break;
       }
-      //builder.connect_signals(Save_File_Dialog_Handler);
-
-      var Save_File_Dialog = (FileChooserDialog) builder.get_object("Save_File_Dialog");
-
-      Save_File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
-      Save_File_Dialog.add_buttons (
-        "_Cancel", Gtk.ResponseType.CANCEL,
-        "_Save", Gtk.ResponseType.OK);
-
-      // nur fix eigentlich sollte man buidler.connect_signals benutzen
-      Save_File_Dialog.response.connect(PNG_Save_File_Dialog_Handler.saveResponse);
 
       Save_File_Dialog.run();
 
       Save_File_Dialog.destroy();
-#endif
-      
     }
   }
 }
