@@ -25,28 +25,28 @@ namespace dialog {
     
     [CCode (instance_pos = -1)]
     public void saveResponse(Dialog source, int response) {
-      var Save_File_Dialog = source as FileChooserDialog;
+      var File_Dialog = source as FileChooserDialog;
             
       switch (response) {
         case Gtk.ResponseType.OK:
           Posix.stdout.printf("ok");
                  
-//          if ( "." in Save_File_Dialog.get_uri()){
+//          if ( "." in File_Dialog.get_uri()){
 //            Posix.stdout.printf("not appending\n");
 //          } else {
 //            Posix.stdout.printf("appending\n");
-//            string tmp = Save_File_Dialog.get_filename()+".svg";
+//            string tmp = File_Dialog.get_filename()+".svg";
 //            Posix.stdout.printf(tmp+"\n");
-//            Save_File_Dialog.set_current_name(tmp);
+//            File_Dialog.set_current_name(tmp);
 //          }
           
-          Posix.stdout.printf(Save_File_Dialog.get_uri()+"\n");
-          Posix.stdout.printf(Save_File_Dialog.get_filename()+"\n");
+          Posix.stdout.printf(File_Dialog.get_uri()+"\n");
+          Posix.stdout.printf(File_Dialog.get_filename()+"\n");
           
-          File file = File.new_for_uri (Save_File_Dialog.get_uri());
+          File file = File.new_for_uri (File_Dialog.get_uri());
           
           if (file.query_exists()) {
-            Posix.stdout.printf("File exists removing: %s\n", Save_File_Dialog.get_uri());
+            Posix.stdout.printf("File exists removing: %s\n", File_Dialog.get_uri());
             try {
               file.delete ();
             } catch (Error e) {
@@ -55,7 +55,7 @@ namespace dialog {
             }
           }
           
-          this.surface = new SvgSurface (Save_File_Dialog.get_filename(),
+          this.surface = new SvgSurface (File_Dialog.get_filename(),
                                          this.width, this.height);
           this.context = new Context (this.surface);
           
@@ -96,17 +96,17 @@ namespace dialog {
     
     [CCode (instance_pos = -1)]
     public void saveResponse(Dialog source, int response) {
-      var Save_File_Dialog = source as FileChooserDialog;
+      var File_Dialog = source as FileChooserDialog;
             
       switch (response) {
         case Gtk.ResponseType.OK:
           Posix.stdout.printf("ok");
           // show_help ();
 
-          var file = File.new_for_uri (Save_File_Dialog.get_uri());
+          var file = File.new_for_uri (File_Dialog.get_uri());
           
           if (file.query_exists()) {
-            Posix.stdout.printf("File exists removing: %s", Save_File_Dialog.get_uri());
+            Posix.stdout.printf("File exists removing: %s", File_Dialog.get_uri());
             try {
               file.delete ();
             } catch (Error e) {
@@ -128,7 +128,7 @@ namespace dialog {
                  this.width, this.height);
           renderer.Graph (context, this.Points, this.position.get(0), this.position.get(1));
           
-          this.surface.write_to_png (Save_File_Dialog.get_filename());
+          this.surface.write_to_png (File_Dialog.get_filename());
           
           break;
         case Gtk.ResponseType.CANCEL:
@@ -147,18 +147,18 @@ namespace dialog {
     
     [CCode (instance_pos = -1)]
     public void saveResponse(Dialog source, int response){
-      var Save_File_Dialog = source as FileChooserDialog;
+      var File_Dialog = source as FileChooserDialog;
       
       switch (response) {
         case Gtk.ResponseType.OK:
           // show_help ();
-          var file = File.new_for_uri(Save_File_Dialog.get_uri());
+          var file = File.new_for_uri(File_Dialog.get_uri());
           FileOutputStream fileStream = null;
           DataOutputStream dos = null;
           
           
           if (file.query_exists()) {
-            Posix.stdout.printf("File exists removing: %s", Save_File_Dialog.get_uri());
+            Posix.stdout.printf("File exists removing: %s", File_Dialog.get_uri());
             try {
               file.delete ();
             } catch (Error e) {
@@ -181,6 +181,45 @@ namespace dialog {
           } catch (Error e) {
             Posix.stderr.printf ("Could not put string in data output stream: %s\n", e.message);
             exit(1);
+          }
+          break;
+        case Gtk.ResponseType.CANCEL:
+          break;
+      }
+    }
+  } 
+
+  public class CSVOpenDialogHandler : Object {
+    public List<double?> CSV = new List<double?> ();
+    
+    public CSVOpenDialogHandler () {}
+    
+    [CCode (instance_pos = -1)]
+    public void openResponse(Dialog source, int response){
+      var File_Dialog = source as FileChooserDialog;
+      
+      switch (response) {
+        case Gtk.ResponseType.OK:
+          // show_help ();
+          var file = File.new_for_uri(File_Dialog.get_uri());
+          if (!file.query_exists ()) {
+            GLib.stderr.printf ("File '%s' doesn't exist.\n", file.get_path ());
+            exit(1);
+          }
+
+          try {
+            // Open file for reading and wrap returned FileInputStream into a
+            // DataInputStream, so we can read line by line
+            var dis = new DataInputStream (file.read ());
+            string line;
+            // Read lines until end of file (null) is reached
+            while ((line = dis.read_line (null)) != null) {
+              GLib.stdout.printf ("%s\n", line);
+              this.CSV.append(double.parse(line));
+            }
+          } catch (Error e) {
+            error ("%s", e.message);
+            //exit(1);
           }
           break;
         case Gtk.ResponseType.CANCEL:

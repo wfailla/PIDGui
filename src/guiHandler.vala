@@ -114,8 +114,10 @@ namespace gui {
     public SpinButton SpinButton = null;
     public PopoverMenu Export_Menu = null;
     public DrawingArea Diagram = null;
+    public Button CalcButton = null;
 
     public string CSV = null;
+    public List<double?> Inputs = null;
     
     Renderer renderer = new drawer.simpleDraw();
 
@@ -128,6 +130,7 @@ namespace gui {
       this.KD_Entry = (Entry) builder.get_object("KD_Entry");
       this.SP_Entry = (Entry) builder.get_object("SP_Entry");
       this.Input_Entry = (Entry) builder.get_object("Input_Entry");
+      this.CalcButton = (Button) builder.get_object("CSVImport");
 
       this.Export_Menu = (PopoverMenu) builder.get_object("Export_Menu");
 
@@ -166,39 +169,82 @@ namespace gui {
     public void on_Calc_Button_clicked(Button source) {
 
       int iterations = this.SpinButton.get_value_as_int();
+      
+      if (Inputs == null) {
+        CalcButton.set_sensitive(false);
+        
+        for (int i = 0; i<iterations; i++) {
+          this.pid.kp = double.parse(this.KP_Entry.get_text());
+          this.pid.ki = double.parse(this.KI_Entry.get_text());
+          this.pid.kd = double.parse(this.KD_Entry.get_text());
 
-      for (int i = 0; i<iterations; i++) {
-        this.pid.kp = double.parse(this.KP_Entry.get_text());
-        this.pid.ki = double.parse(this.KI_Entry.get_text());
-        this.pid.kd = double.parse(this.KD_Entry.get_text());
+          string Time = this.pid.TimeInMs.to_string();
+          this.pid.PIDcalc(double.parse(this.Input_Entry.get_text()),
+            double.parse(this.SP_Entry.get_text()));
+          this.OldResult = pid.OldResult.to_string();
+          this.Result = pid.Result.to_string();
+          this.Points.append(pid.Result);
 
-        string Time = this.pid.TimeInMs.to_string();
-        this.pid.PIDcalc(double.parse(this.Input_Entry.get_text()),
-          double.parse(this.SP_Entry.get_text()));
-        this.OldResult = pid.OldResult.to_string();
-        this.Result = pid.Result.to_string();
-        this.Points.append(pid.Result);
+          this.CalcResult_TextView.buffer.text += @"$Time\t\t$Result\t\t$OldResult\n";
 
-        this.CalcResult_TextView.buffer.text += @"$Time\t\t$Result\t\t$OldResult\n";
+          TextIter iter;
+          this.CalcResult_TextView.buffer.get_end_iter(out iter);
 
-        TextIter iter;
-        this.CalcResult_TextView.buffer.get_end_iter(out iter);
+          this.CalcResult_TextView.scroll_to_mark(
+            this.CalcResult_TextView.buffer.create_mark (null, iter, true), 0.4,
+            false, 0.5, 0.5);
 
-        this.CalcResult_TextView.scroll_to_mark(
-          this.CalcResult_TextView.buffer.create_mark (null, iter, true), 0.4,
-          false, 0.5, 0.5);
+          this.CSV += @"$Time; ";
+          this.CSV += this.KP_Entry.get_text() + "; ";
+          this.CSV += this.KI_Entry.get_text() + "; ";
+          this.CSV += this.KD_Entry.get_text() + "; ";
+          this.CSV += this.Input_Entry.get_text() + "; ";
+          this.CSV += this.SP_Entry.get_text() + "; ";
+          this.CSV += @"$Result; $OldResult;\n";
 
-        this.CSV += @"$Time; ";
-        this.CSV += this.KP_Entry.get_text() + "; ";
-        this.CSV += this.KI_Entry.get_text() + "; ";
-        this.CSV += this.KD_Entry.get_text() + "; ";
-        this.CSV += this.Input_Entry.get_text() + "; ";
-        this.CSV += this.SP_Entry.get_text() + "; ";
-        this.CSV += @"$Result; $OldResult;\n";
+          this.pid.TimeInMs += 1;
 
-        this.pid.TimeInMs += 1;
+          this.Diagram.queue_draw ();
+        }
+      } else {
+        CalcButton.set_sensitive(true);
+        for (int i = 0; i<iterations; i++) {
+          this.pid.kp = double.parse(this.KP_Entry.get_text());
+          this.pid.ki = double.parse(this.KI_Entry.get_text());
+          this.pid.kd = double.parse(this.KD_Entry.get_text());
 
-        this.Diagram.queue_draw ();
+          if (this.Inputs.length() > this.pid.TimeInMs) {
+
+            string Time = this.pid.TimeInMs.to_string();
+            this.pid.PIDcalc(this.Inputs.nth(this.pid.TimeInMs).data,
+              double.parse(this.SP_Entry.get_text()));
+            this.OldResult = pid.OldResult.to_string();
+            this.Result = pid.Result.to_string();
+            this.Points.append(pid.Result);
+
+            this.CalcResult_TextView.buffer.text += @"$Time\t\t$Result\t\t$OldResult\n";
+
+            TextIter iter;
+            this.CalcResult_TextView.buffer.get_end_iter(out iter);
+
+            this.CalcResult_TextView.scroll_to_mark(
+              this.CalcResult_TextView.buffer.create_mark (null, iter, true), 0.4,
+              false, 0.5, 0.5);
+
+            this.CSV += @"$Time; ";
+            this.CSV += this.KP_Entry.get_text() + "; ";
+            this.CSV += this.KI_Entry.get_text() + "; ";
+            this.CSV += this.KD_Entry.get_text() + "; ";
+            this.CSV += this.Input_Entry.get_text() + "; ";
+            this.CSV += this.SP_Entry.get_text() + "; ";
+            this.CSV += @"$Result; $OldResult;\n";
+
+            this.pid.TimeInMs += 1;
+            this.Diagram.queue_draw ();
+          } else {
+            this.CalcResult_TextView.buffer.text += "No more data!\n";
+          }
+        }
       }
     }
 
@@ -210,6 +256,7 @@ namespace gui {
       this.Points = new List<double?> ();
       this.position.set(0, Diagram.get_allocated_width() / 2);
       this.position.set(1, Diagram.get_allocated_height() / 2);
+      this.pid.TimeInMs = 0;
 
       this.Diagram.queue_draw ();
     }
@@ -321,84 +368,123 @@ namespace gui {
       }
       return true;
     }
-
+    
     [CCode (instance_pos = -1)]
-    public void on_CSVExport_Button_clicked(Button source) {
+    public void on_CSVImport_Button_clicked(Button source) {
       var builder = new Builder();
-      var Save_File_Dialog_Handler = new dialog.CSVSaveDialogHandler (this.CSV);
+      var File_Dialog_Handler = new dialog.CSVOpenDialogHandler ();
 
       try {
-        builder.add_objects_from_file("PIDGui.glade", {"Save_File_Dialog"});
+        builder.add_objects_from_file("PIDGui.glade", {"File_Dialog"});
       } catch (GLib.Error e) {
         Posix.stderr.printf ("Could not load save file dialog: %s\n", e.message);
         exit(1);
       }
-      //builder.connect_signals(Save_File_Dialog_Handler);
+      //builder.connect_signals(File_Dialog_Handler);
 
-      var Save_File_Dialog = (FileChooserDialog) builder.get_object("Save_File_Dialog");
+      var File_Dialog = (FileChooserDialog) builder.get_object("File_Dialog");
 
-      Save_File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
-      Save_File_Dialog.add_buttons (
+      File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
+      File_Dialog.add_buttons (
+        "_Cancel", Gtk.ResponseType.CANCEL,
+        "_Open", Gtk.ResponseType.OK);
+        
+      File_Dialog.set_action(Gtk.FileChooserAction.OPEN);
+
+      // nur fix eigentlich sollte man buidler.connect_signals benutzen
+      File_Dialog.response.connect(File_Dialog_Handler.openResponse);
+
+      File_Dialog.run();
+
+      File_Dialog.destroy();
+      
+      File_Dialog_Handler.CSV.foreach ((entry) => {
+		    Posix.stdout.puts (entry.to_string());
+		    Posix.stdout.putc ('\n');
+	    });
+	    
+	    this.Inputs = File_Dialog_Handler.CSV.copy();
+	    
+      this.Input_Entry.set_sensitive (false);
+    }
+
+    [CCode (instance_pos = -1)]
+    public void on_CSVExport_Button_clicked(Button source) {
+      var builder = new Builder();
+      var File_Dialog_Handler = new dialog.CSVSaveDialogHandler (this.CSV);
+
+      try {
+        builder.add_objects_from_file("PIDGui.glade", {"File_Dialog"});
+      } catch (GLib.Error e) {
+        Posix.stderr.printf ("Could not load save file dialog: %s\n", e.message);
+        exit(1);
+      }
+      //builder.connect_signals(File_Dialog_Handler);
+
+      var File_Dialog = (FileChooserDialog) builder.get_object("File_Dialog");
+
+      File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
+      File_Dialog.add_buttons (
         "_Cancel", Gtk.ResponseType.CANCEL,
         "_Save", Gtk.ResponseType.OK);
 
       // nur fix eigentlich sollte man buidler.connect_signals benutzen
-      Save_File_Dialog.response.connect(Save_File_Dialog_Handler.saveResponse);
+      File_Dialog.response.connect(File_Dialog_Handler.saveResponse);
 
-      Save_File_Dialog.run();
+      File_Dialog.run();
 
-      Save_File_Dialog.destroy();
+      File_Dialog.destroy();
     }
 
     [CCode (instance_pos = -1)]
     public void on_Choose_Export_Button_clicked(Button source) {
       var builder = new Builder();
       try {
-        builder.add_objects_from_file("PIDGui.glade", {"Save_File_Dialog"});
+        builder.add_objects_from_file("PIDGui.glade", {"File_Dialog"});
       } catch (GLib.Error e) {
         Posix.stderr.printf ("Could not load save file dialog: %s\n", e.message);
         exit(1);
       }
-      //builder.connect_signals(Save_File_Dialog_Handler);
+      //builder.connect_signals(File_Dialog_Handler);
       
 
-      var Save_File_Dialog = (FileChooserDialog) builder.get_object("Save_File_Dialog");
-      Save_File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
-      Save_File_Dialog.add_buttons (
+      var File_Dialog = (FileChooserDialog) builder.get_object("File_Dialog");
+      File_Dialog.set_transient_for ((Window) this.CalcResult_TextView.get_toplevel());
+      File_Dialog.add_buttons (
         "_Cancel", Gtk.ResponseType.CANCEL,
         "_Save", Gtk.ResponseType.OK);
 
-      SaveDialogHandler Save_File_Dialog_Handler = null;
+      SaveDialogHandler File_Dialog_Handler = null;
 
       switch (source.get_name()) {
       case "PNGExport_Button":
-        Save_File_Dialog_Handler = new dialog.PNGSaveDialogHandler();
-        (Save_File_Dialog_Handler as dialog.PNGSaveDialogHandler).SaveDialogHandler (this.Points,
+        File_Dialog_Handler = new dialog.PNGSaveDialogHandler();
+        (File_Dialog_Handler as dialog.PNGSaveDialogHandler).SaveDialogHandler (this.Points,
           this.position,
           this.Diagram.get_allocated_width(),
           this.Diagram.get_allocated_height());
 
         // nur fix eigentlich sollte man buidler.connect_signals benutzen
-        Save_File_Dialog.response.connect((Save_File_Dialog_Handler as dialog.PNGSaveDialogHandler).saveResponse);
+        File_Dialog.response.connect((File_Dialog_Handler as dialog.PNGSaveDialogHandler).saveResponse);
         break;
       case "SVGExport_Button":
-        Save_File_Dialog_Handler = new dialog.SVGSaveDialogHandler();
-        (Save_File_Dialog_Handler as dialog.SVGSaveDialogHandler).SaveDialogHandler (this.Points,
+        File_Dialog_Handler = new dialog.SVGSaveDialogHandler();
+        (File_Dialog_Handler as dialog.SVGSaveDialogHandler).SaveDialogHandler (this.Points,
           this.position,
           this.Diagram.get_allocated_width(),
           this.Diagram.get_allocated_height());
 
         // nur fix eigentlich sollte man buidler.connect_signals benutzen
-        Save_File_Dialog.response.connect((Save_File_Dialog_Handler as dialog.SVGSaveDialogHandler).saveResponse);
+        File_Dialog.response.connect((File_Dialog_Handler as dialog.SVGSaveDialogHandler).saveResponse);
         break;
       default:
         Posix.stdout.printf("Error!\n");
         break;
       }
 
-      Save_File_Dialog.run();
+      File_Dialog.run();
 
-      Save_File_Dialog.destroy();
+      File_Dialog.destroy();
     }
   }
 }

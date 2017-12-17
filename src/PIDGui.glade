@@ -138,7 +138,6 @@ To center the picture right click.</property>
                     <property name="can_focus">True</property>
                     <property name="has_focus">True</property>
                     <property name="tooltip_text" translatable="yes">The P parameter of the controller.</property>
-                    <property name="halign">end</property>
                     <property name="placeholder_text" translatable="yes">0.1</property>
                     <property name="input_purpose">number</property>
                     <signal name="changed" handler="gui_handler_on_Entry_Changed" swapped="no"/>
@@ -191,13 +190,37 @@ To center the picture right click.</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkEntry" id="Input_Entry">
+                  <object class="GtkGrid">
                     <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="tooltip_text" translatable="yes">Current input of the controller. This needs to be updated by hand.</property>
-                    <property name="placeholder_text" translatable="yes">0</property>
-                    <property name="input_purpose">number</property>
-                    <signal name="changed" handler="gui_handler_on_Entry_Changed" swapped="no"/>
+                    <property name="can_focus">False</property>
+                    <property name="column_spacing">4</property>
+                    <child>
+                      <object class="GtkEntry" id="Input_Entry">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip_text" translatable="yes">Current input of the controller. This needs to be updated by hand.</property>
+                        <property name="placeholder_text" translatable="yes">0</property>
+                        <property name="input_purpose">number</property>
+                        <signal name="changed" handler="gui_handler_on_Entry_Changed" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left_attach">0</property>
+                        <property name="top_attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="CSVImport">
+                        <property name="label" translatable="yes">Import</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <signal name="clicked" handler="gui_handler_on_CSVImport_Button_clicked" swapped="no"/>
+                      </object>
+                      <packing>
+                        <property name="left_attach">1</property>
+                        <property name="top_attach">0</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="left_attach">1</property>
@@ -405,7 +428,7 @@ To center the picture right click.</property>
       </packing>
     </child>
   </object>
-  <object class="GtkFileChooserDialog" id="Save_File_Dialog">
+  <object class="GtkFileChooserDialog" id="File_Dialog">
     <property name="can_focus">False</property>
     <property name="modal">True</property>
     <property name="type_hint">dialog</property>
